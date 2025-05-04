@@ -1,75 +1,78 @@
 import { createInterface } from 'readline/promises';
-import os from "os";
-import { promises as fs } from 'fs'
+import os from 'os';
+import Navigation from './navigation';
 
-process.chdir(os.homedir());
+class Main {
+  #username;
+  #nwd;
 
-let username = "username";
-process.argv.forEach((arg) => {if (arg.startsWith("--username")) username = arg.split('=')[1]});
-console.log(`Welcome to the File Manager, ${username}!`);
-printPath();
+  constructor() {
+    this.#username = 'username';
+    this.#nwd = new Navigation();
+  }
 
-const rl = createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
+  start() {
+    process.chdir(os.homedir());
+    this.showGreeting();
 
-rl.on('close', () => {
-    closeProgram()
-});
+    const rl = createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
 
-rl.on('line', (input) => {
-    if (input === ".exit") {
-        closeProgram();
-    } else {
-        const [command, ...args] = input.split(' ');
-        try {
-            switch (command) {
-                case "up":
-                    process.chdir('..');
-                    break;
-                case "cd":
-                    process.chdir(args[0]);
-                    break;
-                case "ls":
-                    showList();
-                    break;
-                default:
-                    console.log('Invalid input');
-                }
-            } catch {
-                console.log('Operation failed');
-            }
-        printPath();
-    }
-});
+    rl.on('close', () => {
+      this.closeProgram();
+    });
 
-function closeProgram() {
-    console.log(`Thank you for using File Manager, ${username}, goodbye!`);
+    rl.on('line', (input) => {
+      if (input === '.exit') {
+        this.closeProgram();
+      } else {
+        this.chooseCommand(input);
+      }
+    });
+  }
+
+  showGreeting() {
+    process.argv.forEach((arg) => {
+      if (arg.startsWith('--username')) this.#username = arg.split('=')[1];
+    });
+    console.log(`Welcome to the File Manager, ${this.#username}!`);
+    this.printPath();
+  }
+
+  closeProgram() {
+    console.log(
+      `Thank you for using File Manager, ${this.#username}, goodbye!`
+    );
     process.exit(0);
-}
+  }
 
-function printPath() {
+  printPath() {
     console.log(`You are currently in ${process.cwd()}`);
-}
+  }
 
-async function showList() {
-    const folders = [];
-    const files = [];
+  chooseCommand(input) {
+    const [command, ...args] = input.split(' ');
     try {
-        let items = await fs.readdir(process.cwd(), { withFileTypes: true });
-        for (const item of items) {
-            item.isDirectory() ? folders.push(item.name) : files.push(item.name);
-        }
-
-        folders.sort((a, b) => a.localeCompare(b));
-        files.sort((a, b) => a.localeCompare(b));
-        let index = 0;
-        console.log(`Index| Name                 | Type`);
-        console.log(`-----|----------------------|--------`);
-        folders.forEach((x) => console.log(`${(index++).toString().padEnd(5)}|${x.padEnd(22)}| folder`));
-        files.forEach((x) => console.log(`${(index++).toString().padEnd(5)}|${x.padEnd(22)}| file`));
+      switch (command) {
+        case 'up':
+          process.chdir('..');
+          break;
+        case 'cd':
+          process.chdir(args[0]);
+          break;
+        case 'ls':
+          this.#nwd.showList();
+          break;
+        default:
+          console.log('Invalid input');
+      }
     } catch {
-        console.log('Operation failed');
+      console.log('Operation failed');
     }
+    this.printPath();
+  }
 }
+
+new Main().start();
