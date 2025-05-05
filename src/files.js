@@ -1,75 +1,68 @@
 import fs from 'node:fs';
+import { promises } from 'fs';
 import path from 'path';
 
 class Files {
   read(path) {
-    const fileReadStream = fs.createReadStream(path);
-    fileReadStream.on('data', (chunk) => {
-      process.stdout.write(chunk.toString());
-    });
-    fileReadStream.on('end', () => {
-      process.stdout.write('\n');
-    });
-    fileReadStream.on('error', (err) => {
-      console.error('Operation failed:', err.message);
+    return new Promise((resolve, reject) => {
+      const fileReadStream = fs.createReadStream(path);
+      fileReadStream.on('data', (chunk) => {
+        process.stdout.write(chunk.toString());
+      });
+      fileReadStream.on('end', () => {
+        process.stdout.write('\n');
+        resolve();
+      });
+      fileReadStream.on('error', (err) => {
+        reject(err.message);
+      });
     });
   }
 
-  create(name) {
+  async create(name) {
     const filePath = path.join(process.cwd(), name);
-    fs.writeFile(filePath, '', (err) => {
-      if (err) {
-        console.error('Operation failed:', err.message);
-      } else {
-        console.log('File created');
-      }
-    });
+    await promises.writeFile(filePath, '');
+    console.log('File created');
   }
 
-  mkdir(name) {
+  async mkdir(name) {
     const dirPath = path.join(process.cwd(), name);
-    fs.mkdir(dirPath, { recursive: true }, (err) => {
-      if (err) {
-        console.error('Operation failed:', err.message);
-      } else {
-        console.log('Folder created');
-      }
-    });
+    await promises.mkdir(dirPath, { recursive: true });
+    console.log('Folder created');
   }
 
-  rename(oldName, newName) {
-    fs.rename(oldName, newName, (err) => {
-      if (err) {
-        console.error('Operation failed:', err.message);
-      } else {
-        console.log('File Renamed');
-      }
-    });
+  async rename(oldName, newName) {
+    await promises.rename(oldName, newName);
+    console.log('File Renamed');
   }
 
   move(oldPath, newDir, shouldRemove = false) {
-    const newPath = path.join(newDir, path.basename(oldPath));
+    return new Promise((resolve, reject) => {
+      const newPath = path.join(newDir, path.basename(oldPath));
 
-    const fileReadStream = fs.createReadStream(oldPath);
-    fileReadStream.on('error', (err) => {
-      console.error('Operation failed:', err.message);
-    });
+      const fileReadStream = fs.createReadStream(oldPath);
+      fileReadStream.on('error', (err) => {
+        reject(err.message);
+      });
 
-    const fileWriteStream = fs.createWriteStream(newPath);
-    fileWriteStream.on('error', (err) => {
-      console.error('Operation failed:', err.message);
+      const fileWriteStream = fs.createWriteStream(newPath);
+      fileWriteStream.on('error', (err) => {
+        reject(err.message);
+      });
+      fileWriteStream.on('close', () => {
+        if (shouldRemove) this.delete(oldPath, true);
+        else {
+          console.log('File copied');
+          resolve();
+        }
+      });
+      fileReadStream.pipe(fileWriteStream);
     });
-    fileWriteStream.on('close', () => {
-      shouldRemove ? this.delete(oldPath, true) : console.log('File copied');
-    });
-    fileReadStream.pipe(fileWriteStream);
   }
 
-  delete(path, isMoving = false) {
-    fs.unlink(path, (err) => {
-      if (err) console.error('Operation failed:', err.message);
-      else isMoving ? console.log('File moved') : console.log('File deleted');
-    });
+  async delete(path, isMoving = false) {
+    await promises.unlink(path);
+    isMoving ? console.log('File moved') : console.log('File deleted');
   }
 }
 

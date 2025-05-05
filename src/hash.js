@@ -11,15 +11,11 @@ class Hash {
         callback();
       }
     });
-    try {
-      await pipeline(
-        createReadStream(path),
-        createHash('sha256').setEncoding('hex'),
-        echo
-      );
-    } catch (err) {
-      console.error(`Operation failed: ${err.message}`);
-    }
+    await pipeline(
+      createReadStream(path),
+      createHash('sha256').setEncoding('hex'),
+      echo
+    );
   }
 }
 
