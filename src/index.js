@@ -2,16 +2,19 @@ import { createInterface } from 'readline/promises';
 import os from 'os';
 import Navigation from './navigation.js';
 import Files from './files.js';
+import System from './system.js';
 
 class Main {
   #username;
   #nwd;
   #fs;
+  #os;
 
   constructor() {
     this.#username = 'username';
     this.#nwd = new Navigation();
     this.#fs = new Files();
+    this.#os = new System();
   }
 
   start() {
@@ -88,6 +91,9 @@ class Main {
           break;
         case 'rm':
           this.#fs.delete(args[0]);
+          break;
+        case 'os':
+          this.#os.start(args[0]);
           break;
         default:
           console.log('Invalid input');
