@@ -4,6 +4,7 @@ import Navigation from './navigation.js';
 import Files from './files.js';
 import System from './system.js';
 import Hash from './hash.js';
+import Zlib from './zlib.js';
 
 class Main {
   #username;
@@ -11,6 +12,7 @@ class Main {
   #fs;
   #os;
   #hash;
+  #zlib;
 
   constructor() {
     this.#username = 'username';
@@ -18,6 +20,7 @@ class Main {
     this.#fs = new Files();
     this.#os = new System();
     this.#hash = new Hash();
+    this.#zlib = new Zlib();
   }
 
   start() {
@@ -100,6 +103,10 @@ class Main {
           break;
         case 'hash':
           this.#hash.calcHash(args[0]);
+          break;
+        case 'compress':
+        case 'decompress':
+          this.#zlib.compress(command, args[0], args[1]);
           break;
         default:
           console.log('Invalid input');
