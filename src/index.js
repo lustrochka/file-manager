@@ -3,18 +3,21 @@ import os from 'os';
 import Navigation from './navigation.js';
 import Files from './files.js';
 import System from './system.js';
+import Hash from './hash.js';
 
 class Main {
   #username;
   #nwd;
   #fs;
   #os;
+  #hash;
 
   constructor() {
     this.#username = 'username';
     this.#nwd = new Navigation();
     this.#fs = new Files();
     this.#os = new System();
+    this.#hash = new Hash();
   }
 
   start() {
@@ -94,6 +97,9 @@ class Main {
           break;
         case 'os':
           this.#os.start(args[0]);
+          break;
+        case 'hash':
+          this.#hash.calcHash(args[0]);
           break;
         default:
           console.log('Invalid input');
