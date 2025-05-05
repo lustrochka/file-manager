@@ -1,14 +1,17 @@
 import { createInterface } from 'readline/promises';
 import os from 'os';
-import Navigation from './navigation';
+import Navigation from './navigation.js';
+import Files from './files.js';
 
 class Main {
   #username;
   #nwd;
+  #fs;
 
   constructor() {
     this.#username = 'username';
     this.#nwd = new Navigation();
+    this.#fs = new Files();
   }
 
   start() {
@@ -64,6 +67,27 @@ class Main {
           break;
         case 'ls':
           this.#nwd.showList();
+          break;
+        case 'cat':
+          this.#fs.read(args[0]);
+          break;
+        case 'add':
+          this.#fs.create(args[0]);
+          break;
+        case 'mkdir':
+          this.#fs.mkdir(args[0]);
+          break;
+        case 'rn':
+          this.#fs.rename(args[0], args[1]);
+          break;
+        case 'cp':
+          this.#fs.move(args[0], args[1]);
+          break;
+        case 'mv':
+          this.#fs.move(args[0], args[1], true);
+          break;
+        case 'rm':
+          this.#fs.delete(args[0]);
           break;
         default:
           console.log('Invalid input');
